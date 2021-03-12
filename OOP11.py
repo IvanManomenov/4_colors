@@ -205,7 +205,7 @@ class App(object):
         # lines_in_polygon[-1].append(len(sliced_lines))
         sliced_line = Polygon([])
         new_polyg2 = Polygon([])
-
+#legushka
         for i in lines[self.st_inter[0]].coords[self.fin_inter[1]: len(lines[self.st_inter[0]].coords)]:
             new_polyg2.app(i)
             sliced_line.app(i)
