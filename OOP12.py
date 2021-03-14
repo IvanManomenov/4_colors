@@ -12,10 +12,8 @@ root.geometry('1200x720')
 canv = Canvas(root, bg='white')
 k = 0
 line_width = 10  # толщина рисуемой линии
-lines = []  # массив кривых
 radius_inter = 10
 crossing = []  # массив для пересечений(пока не используется)
-sliced_lines = []
 lines_in_polygon = []
 canv.place(x=ident_x, y=ident_y, width=field_width + 20, height=field_height + 20)
 
@@ -70,10 +68,12 @@ class App(object):
         self.k = 0
         self.st_inter = []
         self.fin_inter = []
+        self.lines = []
+        self.sliced_lines = []
         # print(lines[0])
-        lines.append(self.create_bounds())
-        sliced_lines.append(self.create_bounds())
-        lines[0].fill("white")
+        self.lines.append(self.create_bounds())
+        self.sliced_lines.append(self.create_bounds())
+        self.lines[0].fill("white")
         canv.bind('<Button-1>', self.start)
         canv.bind('<B1-Motion>', self.draw)
         canv.bind('<ButtonRelease-1>', self.stop)
@@ -116,6 +116,36 @@ class App(object):
             self.x0 = self.x
             self.y0 = self.y
 
+    def choose_colour1(self):
+        colors[0] = askcolor()[1]
+        button_color1['bg'] = colors[0]
+        self.translate()
+
+    def choose_colour2(self):
+        colors[1] = askcolor()[1]
+        button_color2['bg'] = colors[1]
+        self.translate()
+
+    def choose_colour3(self):
+        colors[2] = askcolor()[1]
+        button_color3['bg'] = colors[2]
+        self.translate()
+
+    def choose_colour4(self):
+        colors[3] = askcolor()[1]
+        button_color4['bg'] = colors[3]
+        self.translate()
+
+    def check_point(self, event):
+        x = event.x
+        y = event.y
+        p = Point(x, y)
+        if p.is_in_polygon(self.lines[0]) % 2 == 1:
+            check_button['bg'] = "green"
+        else:
+            check_button['bg'] = "red"
+        check_button['text'] = p.is_in_polygon(self.lines[0])
+
     def create_bounds(self):  # создание границ поля
         field_line = Polygon([])
         for i in range(field_width):
@@ -133,141 +163,81 @@ class App(object):
         if self.k == 4:
             self.k = 0
         self.cur_line.fill(colors[self.k])
-        lines.append(self.cur_line)
+        self.lines.append(self.cur_line)
         cur_line = Polygon([])
 
     def draw_polygon(
             self):  # рисование полигона, если стартовая точка пересечения с другим полигоном в его массиве находится раньше финальной
         new_polyg1 = Polygon([])
-        #sliced_line = Polygon([])
-        # lines_in_polygon.append([])
-        # lines_in_polygon.append([])
-        for i in lines[self.st_inter[0]].coords[self.fin_inter[1]:self.st_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]].coords[self.fin_inter[1]:self.st_inter[1] + 1]:
             new_polyg1.app(i)
-            #sliced_line.app(i)
-        #sliced_lines.append(sliced_line)
-        # lines_in_polygon[-2].append(len(sliced_lines))
-        # lines_in_polygon[st_inter[0]].append(len(sliced_lines))
 
-        #sliced_line = Polygon([])
         for i in range(len(self.cur_line.coords)):
             new_polyg1.app(self.cur_line.coords[i])
-        #    sliced_line.app(self.cur_line.coords[i])
-        #sliced_lines.append(sliced_line)
-        # lines_in_polygon[-2].append(len(sliced_lines))
-        # lines_in_polygon[-1].append(len(sliced_lines))
-        # lines_in_polygon[st_inter[0]].append(len(sliced_lines))
-        sliced_line = Polygon([])
         new_polyg2 = Polygon([])
 
-        for i in lines[self.st_inter[0]].coords[self.st_inter[1]: len(lines[self.st_inter[0]].coords)]:
+        for i in self.lines[self.st_inter[0]].coords[self.st_inter[1]: len(self.lines[self.st_inter[0]].coords)]:
             new_polyg2.app(i)
-        #    sliced_line.app(i)
-        #sliced_lines.append(sliced_line)
-        # lines_in_polygon[-1].append(len(sliced_lines))
-        # lines_in_polygon[st_inter[0]].append(len(sliced_lines))
-        #sliced_line = Polygon([])
-        for i in lines[self.st_inter[0]].coords[0:self.fin_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]].coords[0:self.fin_inter[1] + 1]:
             new_polyg2.app(i)
-        #    sliced_line.app(i)
-        #sliced_lines.append(sliced_line)
-        # lines_in_polygon[-1].append(len(sliced_lines))
-        # sliced_line = []
         for i in range(len(self.cur_line.coords)):
             new_polyg2.app(self.cur_line.coords[len(self.cur_line.coords) - i - 1])
-        lines.append(new_polyg1)
-        lines.append(new_polyg2)
-        lines.pop(self.st_inter[0])
-        #lines_in_polygon.pop(st_inter[0])
-        for i in lines:
-            i.fill(colors[self.k])
-            self.k += 1
-            if (self.k == 4):
-                self.k = 0
+        self.lines.append(new_polyg1)
+        self.lines.append(new_polyg2)
+        self.lines.pop(self.st_inter[0])
 
     def draw_reverse_polygon(
             self):  # рисование полигона, если финальная точка пересечения с другим полигоном в его массиве находится раньше стартовой
-       # sliced_line = Polygon([])
         new_polyg1 = Polygon([])
-        # lines_in_polygon.append([])
-        # lines_in_polygon.append([])
-        for i in lines[self.st_inter[0]].coords[self.st_inter[1]:self.fin_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]].coords[self.st_inter[1]:self.fin_inter[1] + 1]:
             new_polyg1.app(i)
-        #    sliced_line.app(i)
-        #sliced_lines.append(sliced_line)
-        # lines_in_polygon[-2].append(len(sliced_lines))
-       # sliced_line = Polygon([])
         for i in range(len(self.cur_line.coords)):
             new_polyg1.app(self.cur_line.coords[len(self.cur_line.coords) - i - 1])
-        #    sliced_line.app(self.cur_line.coords[len(self.cur_line.coords) - i - 1])
-       # sliced_lines.append(sliced_line)
-        # lines_in_polygon[-2].append(len(sliced_lines))
-        # lines_in_polygon[-1].append(len(sliced_lines))
-        #sliced_line = Polygon([])
         new_polyg2 = Polygon([])
-#legushka
-        for i in lines[self.st_inter[0]].coords[self.fin_inter[1]: len(lines[self.st_inter[0]].coords)]:
+        for i in self.lines[self.st_inter[0]].coords[self.fin_inter[1]: len(self.lines[self.st_inter[0]].coords)]:
             new_polyg2.app(i)
-         #   sliced_line.app(i)
-       # sliced_lines.append(sliced_line)
-        # lines_in_polygon[-1].append(len(sliced_lines))
-        #sliced_line = Polygon([])
-        for i in lines[self.st_inter[0]].coords[0:self.st_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]].coords[0:self.st_inter[1] + 1]:
             new_polyg2.app(i)
-        #    sliced_line.app(i)
-        #sliced_lines.append(sliced_line)
-        # lines_in_polygon[-1].append(len(sliced_lines))
-        sliced_line = Polygon([])
         for i in range(len(self.cur_line.coords)):
             new_polyg2.app(self.cur_line.coords[i])
-        #    sliced_line.app(self.cur_line.coords[i])
-        #sliced_lines.append(sliced_line)
-        lines.pop(self.st_inter[0])
-        lines.append(new_polyg1)
-        lines.append(new_polyg2)
-        for i in lines:
-            i.fill(colors[self.k])
-            self.k += 1
-            if self.k == 4:
-                self.k = 0
+        self.lines.pop(self.st_inter[0])
+        self.lines.append(new_polyg1)
+        self.lines.append(new_polyg2)
+
     def is_array_inter(self, array1, array2):
         for i in array1:
             if i in array2:
                 return True
-        return  False
+        return False
+
     def paint(self):
         self.colored_graph = [4 for i in range(len(self.BFS_graph))]
         BFS_control = []
         BFS_control.append(0)
         while len(BFS_control) != 0:
             for i in self.BFS_graph[BFS_control[0]]:
-                if (self.colored_graph[i] == 4):
+                if self.colored_graph[i] == 4:
                     for j in range(4):
                         g = True
                         for k in self.BFS_graph[i]:
                             if self.colored_graph[k] == j:
                                 g = False
                                 break
-                        if (g == True):
+                        if g:
                             self.colored_graph[i] = j
                             break
                     BFS_control.append(i)
             BFS_control.pop(0)
         for i in range(len(self.BFS_graph)):
-            lines[i].fill(colors[self.colored_graph[i]])
-        #lines[0].fill("pink")
-        #lines[1].fill("black")
-
-        #if(len(lines) > 2):
-        #    lines[2].fill("purple")
+            self.lines[i].fill(colors[self.colored_graph[i]])
 
     def translate(self):
         self.graph = []
-        for i in range(len(lines)):
+        for i in range(len(self.lines)):
             self.graph.append([])
-            for j in range(len(sliced_lines)):
-                print(sliced_lines[j].coords)
-                if (sliced_lines[j].coords[1] in lines[i].coords):
+            for j in range(len(self.sliced_lines)):
+                # print(self.sliced_lines[j].coords)
+                if self.sliced_lines[j].coords[len(self.sliced_lines[j].coords) // 2] in self.lines[i].coords:
                     self.graph[i].append(j)
         self.BFS_graph = [[] for i in range(len(self.graph))]
         for i in range(len(self.graph)):
@@ -279,144 +249,90 @@ class App(object):
                     self.BFS_graph[j].append(i)
         self.paint()
 
-        print(self.graph)
+        print(self.BFS_graph)
+
     def stop(self, event):  # окончание рисования линии, замыкание полигонов
         self.k = 0
-        #self.cur_line = self.interpolation(self.cur_line)
         if len(self.cur_line.coords) > 0:
             self.cur_line.coords.pop(0)
-            # print(b)
             if (abs(self.cur_line.coords[0].x - self.cur_line.coords[-1].x) <= 30 and abs(
                     self.cur_line.coords[0].y - self.cur_line.coords[-1].y) <= 30):
                 self.draw_circle()
             else:
                 self.st_inter = [-1, -1]
                 self.fin_inter = [-1, -1]
-                for i in range(len(lines)):
-                    for j in range(len(lines[i].coords)):
-                        if (abs(self.cur_line.coords[0].x - lines[i].coords[j].x) <= 30 and abs(
-                                self.cur_line.coords[0].y - lines[i].coords[j].y) <= 30):
+                for i in range(len(self.lines)):
+                    for j in range(len(self.lines[i].coords)):
+                        if (abs(self.cur_line.coords[0].x - self.lines[i].coords[j].x) <= 30 and abs(
+                                self.cur_line.coords[0].y - self.lines[i].coords[j].y) <= 30):
                             self.st_inter = [i, j]
-                        if (abs(self.cur_line.coords[-1].x - lines[i].coords[j].x) <= 30 and abs(
-                                self.cur_line.coords[-1].y - lines[i].coords[j].y) <= 30):
+                        if (abs(self.cur_line.coords[-1].x - self.lines[i].coords[j].x) <= 30 and abs(
+                                self.cur_line.coords[-1].y - self.lines[i].coords[j].y) <= 30):
                             self.fin_inter = [i, j]
-                        if (self.st_inter[0] != -1 and self.st_inter[0] == self.fin_inter[0]):
+                        if self.st_inter[0] != -1 and self.st_inter[0] == self.fin_inter[0]:
                             break
-                if (self.st_inter[0] == -1 or self.fin_inter[0] == -1 or self.st_inter[0] != self.fin_inter[0]):
+                if self.st_inter[0] == -1 or self.fin_inter[0] == -1 or self.st_inter[0] != self.fin_inter[0]:
                     canv.delete('recent')
                 else:
-                    # self.cur_line = self.interpolation(cur_line_sliced = self.cur_line)
-                    # for i in self.cur_line.coords:
-                    #   print(i.x, '||', i.y)
                     sliced_coord_st = [-1, -1]
                     sliced_coord_fin = [-1, -1]
-                    for i in range(len(sliced_lines)):
-                        for j in range(len(sliced_lines[i].coords)):
-                            if (abs(self.cur_line.coords[0].x - sliced_lines[i].coords[j].x) <= 50 and abs(
-                                    self.cur_line.coords[0].y - sliced_lines[i].coords[j].y) <= 50):
+                    for i in range(len(self.sliced_lines)):
+                        for j in range(len(self.sliced_lines[i].coords)):
+                            if (abs(self.cur_line.coords[0].x - self.sliced_lines[i].coords[j].x) <= 10 and abs(
+                                    self.cur_line.coords[0].y - self.sliced_lines[i].coords[j].y) <= 10):
                                 sliced_coord_st = [i, j]
-                            if (abs(self.cur_line.coords[-1].x - sliced_lines[i].coords[j].x) <= 50 and abs(
-                                    self.cur_line.coords[-1].y - sliced_lines[i].coords[j].y) <= 50):
+                            if (abs(self.cur_line.coords[-1].x - self.sliced_lines[i].coords[j].x) <= 10 and abs(
+                                    self.cur_line.coords[-1].y - self.sliced_lines[i].coords[j].y) <= 10):
                                 sliced_coord_fin = [i, j]
-                    sliced_lines.append(self.cur_line)
-                    if (sliced_coord_st[0] == sliced_coord_fin[0]):
-                        #if (sliced_coord_st[1] > sliced_coord_fin[1]):
-                        #    mid = sliced_coord_fin[1]
-                        #    sliced_coord_st[1] = sliced_coord_fin[1]
-                        #    sliced_coord_fin[1] = mid
-                        sliced_lines.append(Polygon(sliced_lines[sliced_coord_st[0]].coords[0:min(sliced_coord_st[1], sliced_coord_fin[1])]))
-                        # sliced_lines.append(sliced_lines[sliced_coord_st[0]][0:sliced_coord_st[1]])
-                        sliced_lines.append(
-                            Polygon(sliced_lines[sliced_coord_st[0]].coords[min(sliced_coord_st[1], sliced_coord_fin[1]):max(sliced_coord_st[1], sliced_coord_fin[1])]))
-                        sliced_lines.append(Polygon(sliced_lines[sliced_coord_fin[0]].coords[max(sliced_coord_st[1], sliced_coord_fin[1]): len(
-                            sliced_lines[sliced_coord_st[0]].coords)]))
-                        sliced_lines.pop(sliced_coord_st[0])
+                    self.sliced_lines.append(self.cur_line)
+                    if sliced_coord_st[0] == sliced_coord_fin[0]:
+                        self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_st[0]].coords[
+                                                         :min(sliced_coord_st[1], sliced_coord_fin[1])]))
+                        self.sliced_lines.append(
+                            Polygon(self.sliced_lines[sliced_coord_st[0]].coords[
+                                    min(sliced_coord_st[1], sliced_coord_fin[1]):max(sliced_coord_st[1],
+                                                                                     sliced_coord_fin[1])]))
+                        self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_fin[0]].coords[
+                                                         max(sliced_coord_st[1], sliced_coord_fin[1]):]))
+                        self.sliced_lines.pop(sliced_coord_st[0])
                     else:
-                        sliced_lines.append(Polygon(sliced_lines[sliced_coord_st[0]].coords[0:sliced_coord_st[1]]))
-                        sliced_lines.append(Polygon(sliced_lines[sliced_coord_st[0]].coords[sliced_coord_st[1]: len(
-                            sliced_lines[sliced_coord_st[0]].coords)]))
-                        sliced_lines.append(Polygon(sliced_lines[sliced_coord_fin[0]].coords[0:sliced_coord_fin[1]]))
-                        sliced_lines.append(Polygon(sliced_lines[sliced_coord_fin[0]].coords[sliced_coord_fin[1]: len(
-                            sliced_lines[sliced_coord_fin[0]].coords)]))
-                        sliced_lines.pop(sliced_coord_st[0])
-                        sliced_lines.pop(sliced_coord_fin[0])
-                    print(sliced_lines)
-                    if (self.st_inter[1] > self.fin_inter[1]):
+                        self.sliced_lines.append(
+                            Polygon(self.sliced_lines[sliced_coord_st[0]].coords[:sliced_coord_st[1]]))
+                        self.sliced_lines.append(
+                            Polygon(self.sliced_lines[sliced_coord_st[0]].coords[sliced_coord_st[1]:]))
+                        self.sliced_lines.append(
+                            Polygon(self.sliced_lines[sliced_coord_fin[0]].coords[:sliced_coord_fin[1]]))
+                        self.sliced_lines.append(
+                            Polygon(self.sliced_lines[sliced_coord_fin[0]].coords[sliced_coord_fin[1]:]))
+                        if sliced_coord_st[0] > sliced_coord_fin[0]:
+                            self.sliced_lines.pop(sliced_coord_st[0])
+                            self.sliced_lines.pop(sliced_coord_fin[0])
+                        else:
+                            self.sliced_lines.pop(sliced_coord_fin[0])
+                            self.sliced_lines.pop(sliced_coord_st[0])
+                    print(len(self.sliced_lines))
+                    if self.st_inter[1] > self.fin_inter[1]:
                         self.draw_polygon()
                     else:
                         self.draw_reverse_polygon()
-                # print(sliced_lines[2])
                 self.translate()
 
         print('')
 
 
-def choosecolour1():
-    colors[0] = askcolor()[1]
-    button_color1['bg'] = colors[0]
-    k = 0
-    for i in lines:
-        i.fill(colors[k])
-        k += 1
-        if (k == 4):
-            k = 0
-
-
-def choosecolour2():
-    colors[1] = askcolor()[1]
-    button_color2['bg'] = colors[1]
-    k = 0
-    for i in lines:
-        i.fill(colors[k])
-        k += 1
-        if (k == 4):
-            k = 0
-
-
-def choosecolour3():
-    colors[2] = askcolor()[1]
-    button_color3['bg'] = colors[2]
-    k = 0
-    for i in lines:
-        i.fill(colors[k])
-        k += 1
-        if (k == 4):
-            k = 0
-
-
-def choosecolour4():
-    colors[3] = askcolor()[1]
-    button_color4['bg'] = colors[3]
-    k = 0
-    for i in lines:
-        i.fill(colors[k])
-        k += 1
-        if (k == 4):
-            k = 0
-
-
-def check_point(event):
-    x = event.x
-    y = event.y
-    p = Point(x, y)
-    if p.is_in_polygon(lines[0]) % 2 == 1:
-        check_button['bg'] = "green"
-    else:
-        check_button['bg'] = "red"
-    check_button['text'] = p.is_in_polygon(lines[0])
-
-
 if __name__ == "__main__":
     app = App()
-    button_color1 = Button(bg=colors[0], command=choosecolour1)
+    escape_button = Button(bg="grey", text="cancel")
+    escape_button.place(x=field_width + 20 + ident_x, y=field_height + ident_y - 35, width=50, height=50)
+    button_color1 = Button(bg=colors[0], command=app.choose_colour1)
     button_color1.place(x=20, y=20, width=50, height=50)
-    button_color2 = Button(bg=colors[1], command=choosecolour2)
+    button_color2 = Button(bg=colors[1], command=app.choose_colour2)
     button_color2.place(x=20, y=75, width=50, height=50)
-    button_color3 = Button(bg=colors[2], command=choosecolour3)
+    button_color3 = Button(bg=colors[2], command=app.choose_colour3)
     button_color3.place(x=20, y=130, width=50, height=50)
-    button_color4 = Button(bg=colors[3], command=choosecolour4)
+    button_color4 = Button(bg=colors[3], command=app.choose_colour4)
     button_color4.place(x=20, y=185, width=50, height=50)
     check_button = Button(bg="grey")
     check_button.place(x=20, y=600, width=50, height=50)
-    canv.bind('<Button-3>', check_point)
+    canv.bind('<Button-3>', app.check_point)
     root.mainloop()
