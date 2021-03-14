@@ -1,6 +1,7 @@
 from tkinter import *
 # from tkinter import colorchooser
 from tkinter.colorchooser import askcolor
+from math import *
 
 colors = ['blue', 'red', 'green', 'yellow']
 root = Tk()
@@ -13,7 +14,6 @@ canv = Canvas(root, bg='white')
 k = 0
 line_width = 10  # толщина рисуемой линии
 radius_inter = 10
-crossing = []  # массив для пересечений(пока не используется)
 lines_in_polygon = []
 canv.place(x=ident_x, y=ident_y, width=field_width + 20, height=field_height + 20)
 
@@ -71,8 +71,8 @@ class App(object):
         self.lines = []
         self.sliced_lines = []
         # print(lines[0])
-        self.lines.append(self.create_bounds())
-        self.sliced_lines.append(self.create_bounds())
+        self.lines.append(self.create_elips_bounds())
+        self.sliced_lines.append(self.create_elips_bounds())
         self.lines[0].fill("white")
         canv.bind('<Button-1>', self.start)
         canv.bind('<B1-Motion>', self.draw)
@@ -146,7 +146,26 @@ class App(object):
             check_button['bg'] = "red"
         check_button['text'] = p.is_in_polygon(self.lines[0])
 
-    def create_bounds(self):  # создание границ поля
+    def create_elips_bounds(self):
+        field_line = Polygon([])
+        a = field_height // 2
+        b = field_width // 2
+        for i in range(4 * b):
+            if i < b:
+                y = int(sqrt((a ** 2) * abs((1 - (i / b) ** 2))))
+                field_line.app(Point(10 + b + i, 10 + y + a))
+            elif i < 2 * b:
+                y = -int(sqrt((a ** 2) * abs((1 - ((i - 2 * b) / b) ** 2))))
+                field_line.app(Point(10 + 3 * b - i, 10 + y + a))
+            elif i < 3 * b:
+                y = -int(sqrt((a ** 2) * abs((1 - ((i - 2 * b) / b) ** 2))))
+                field_line.app(Point(10 + 3 * b - i, 10 + y + a))
+            else:
+                y = int(sqrt((a ** 2) * abs((1 - ((i - 4 * b) / b) ** 2))))
+                field_line.app(Point(10 - 3 * b + i, 10 + y + a))
+        return field_line
+
+    def create_rect_bounds(self):  # создание границ поля
         field_line = Polygon([])
         for i in range(field_width):
             field_line.app(Point(10 + i, 10))
@@ -319,9 +338,19 @@ class App(object):
 
         print('')
 
+    def restart(self):
+        self.lines = []
+        self.sliced_lines = []
+        canv.delete("all")
+        self.lines.append(self.create_elips_bounds())
+        self.sliced_lines.append(self.create_elips_bounds())
+        self.lines[0].fill("white")
+
 
 if __name__ == "__main__":
     app = App()
+    restart_button = Button(bg="red", text="restart", command=app.restart)
+    restart_button.place(x=field_width + 20 + ident_x, y=ident_y, width=50, height=50)
     escape_button = Button(bg="grey", text="cancel")
     escape_button.place(x=field_width + 20 + ident_x, y=field_height + ident_y - 35, width=50, height=50)
     button_color1 = Button(bg=colors[0], command=app.choose_colour1)
