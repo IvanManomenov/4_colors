@@ -24,6 +24,9 @@ class Point(object):
         self.x = x
         self.y = y
 
+    def __call__(self):
+        return [self.x, self.y]
+
     def is_in_polygon(self, other):
         count_crossing = 0
         for i in other.coords:
@@ -47,6 +50,9 @@ class Polygon(object):
             self.ycoords.append(i.y)
             self.coords.append(i)
             self.simpcoords.append([i.x, i.y])
+
+    def __call__(self):
+        return self.coords
 
     def fill(self, colour):
         canv.create_polygon(self.simpcoords, fill=colour, outline='black', width=line_width)
@@ -341,7 +347,7 @@ class App(object):
                         self.draw_reverse_polygon()
                 self.translate()
 
-        print('')
+        print(self.cur_line.coords[0])
 
     def restart(self):
         self.lines = []
@@ -359,6 +365,8 @@ if __name__ == "__main__":  # bwrXBuLqUc9bDLH
 
     #name_label.grid(row=0, column=0, sticky="w")
     #surname_label.grid(row=1, column=0, sticky="w")
+    a = Point(10,17)
+    print(a)
     restart_button = Button(bg="red", text="restart", command=app.restart)
     restart_button.place(x=field_width + 20 + ident_x, y=ident_y, width=50, height=50)
     escape_button = Button(bg="grey", text="cancel")
