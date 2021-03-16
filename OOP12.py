@@ -77,6 +77,7 @@ class App(object):
         canv.bind('<Button-1>', self.start)
         canv.bind('<B1-Motion>', self.draw)
         canv.bind('<ButtonRelease-1>', self.stop)
+        print(len(self.sliced_lines))
 
     def start(self, event):
         self.x0 = event.x
@@ -247,8 +248,9 @@ class App(object):
                             break
                     BFS_control.append(i)
             BFS_control.pop(0)
-        for i in range(len(self.BFS_graph)):
-            self.lines[i].fill(colors[self.colored_graph[i]])
+        if not(4 in self.colored_graph):
+            for i in range(len(self.lines)):
+                self.lines[i].fill(colors[self.colored_graph[i]])
 
     def translate(self):
         self.graph = []
@@ -267,8 +269,11 @@ class App(object):
                     self.BFS_graph[i].append(j)
                     self.BFS_graph[j].append(i)
         self.paint()
-
-        print(self.BFS_graph)
+        while 4 in self.colored_graph:
+            self.sliced_lines.append(self.sliced_lines[0])
+            self.sliced_lines.pop(0)
+            self.translate()
+        print(self.graph)
 
     def stop(self, event):  # окончание рисования линии, замыкание полигонов
         self.k = 0
@@ -303,7 +308,6 @@ class App(object):
                             if (abs(self.cur_line.coords[-1].x - self.sliced_lines[i].coords[j].x) <= 10 and abs(
                                     self.cur_line.coords[-1].y - self.sliced_lines[i].coords[j].y) <= 10):
                                 sliced_coord_fin = [i, j]
-                    self.sliced_lines.append(self.cur_line)
                     if sliced_coord_st[0] == sliced_coord_fin[0]:
                         self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_st[0]].coords[
                                                          :min(sliced_coord_st[1], sliced_coord_fin[1])]))
@@ -329,6 +333,7 @@ class App(object):
                         else:
                             self.sliced_lines.pop(sliced_coord_fin[0])
                             self.sliced_lines.pop(sliced_coord_st[0])
+                    self.sliced_lines.append(self.cur_line)
                     print(len(self.sliced_lines))
                     if self.st_inter[1] > self.fin_inter[1]:
                         self.draw_polygon()
@@ -347,8 +352,13 @@ class App(object):
         self.lines[0].fill("white")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # bwrXBuLqUc9bDLH
     app = App()
+    #name_label = Label(text="Введите имя:")
+    #surname_label = Label(text="Введите фамилию:")
+
+    #name_label.grid(row=0, column=0, sticky="w")
+    #surname_label.grid(row=1, column=0, sticky="w")
     restart_button = Button(bg="red", text="restart", command=app.restart)
     restart_button.place(x=field_width + 20 + ident_x, y=ident_y, width=50, height=50)
     escape_button = Button(bg="grey", text="cancel")
