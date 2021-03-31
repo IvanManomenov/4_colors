@@ -2,20 +2,19 @@ from tkinter import *
 # from tkinter import colorchooser
 from tkinter.colorchooser import askcolor
 from math import *
-
+import tkinter.font as font
 colors = ['blue', 'red', 'green', 'yellow']
 root = Tk()
 field_height = 600
 field_width = 1000
 ident_x = 100  # отступ поля от левого края канвы
-ident_y = 30  # отступ поля от верхнего края канвы
-root.geometry('1200x720')
+ident_y = 40  # отступ поля от верхнего края канвы
+root.geometry('1890x1050')
 canv = Canvas(root, bg='white')
 k = 0
 line_width = 10  # толщина рисуемой линии
 radius_inter = 10
 lines_in_polygon = []
-canv.place(x=ident_x, y=ident_y, width=field_width + 20, height=field_height + 20)
 
 
 # count_lines = 0
@@ -29,7 +28,7 @@ class Point(object):
 
     def is_in_polygon(self, other):
         count_crossing = 0
-        for i in other.coords:
+        for i in other():
             if (self.x == i.x and self.y > i.y):
                 count_crossing += 1
         return count_crossing
@@ -76,14 +75,30 @@ class App(object):
         self.fin_inter = []
         self.lines = []
         self.sliced_lines = []
+        self.field_width = field_width
+        self.field_height = field_height
         # print(lines[0])
-        self.lines.append(self.create_elips_bounds())
-        self.sliced_lines.append(self.create_elips_bounds())
+        self.num_bound = 0
+        self.lines.append(self.create_bounds())
+        self.sliced_lines.append(self.create_bounds())
         self.lines[0].fill("white")
         canv.bind('<Button-1>', self.start)
         canv.bind('<B1-Motion>', self.draw)
         canv.bind('<ButtonRelease-1>', self.stop)
         print(len(self.sliced_lines))
+        canv.place(x=ident_x, y=ident_y, width=field_width + 20, height=field_height + 20)
+        self.name = StringVar()
+        self.surname = StringVar()
+        width_label = Label(text="Width =")
+        height_label = Label(text="Height =")
+        width_label.place(x=100, y=10)
+        height_label.place(x=300, y=10)
+        width_entry = Entry(textvariable=self.name)
+        height_entry = Entry(textvariable=self.surname)
+        width_entry.place(x=150, y=10)
+        height_entry.place(x=353, y=10)
+        width_entry.insert(0, self.field_width)
+        height_entry.insert(0, self.field_height)
 
     def start(self, event):
         self.x0 = event.x
@@ -93,8 +108,8 @@ class App(object):
 
     def interpolation(self, cur_line_sliced):
         cur_line_inter = Polygon([])
-        for i in range(len(cur_line_sliced.coords) - 1):
-            cur_line_inter.app(cur_line_sliced.coords[i])
+        for i in range(len(cur_line_sliced()) - 1):
+            cur_line_inter.app(cur_line_sliced()[i])
             if abs(cur_line_sliced.coords[i].x - cur_line_sliced.coords[i + 1].x) > 1 or abs(
                     cur_line_sliced.coords[i].y - cur_line_sliced.coords[i + 1].y) > 1:
                 cir = cur_line_sliced.coords[i].x - cur_line_sliced.coords[i + 1].x
@@ -117,7 +132,7 @@ class App(object):
         self.y = event.y
         if 10 <= self.x <= field_width + 10 and 10 <= self.y <= field_height + 10:
             self.cur_line.app(Point(self.x, self.y))
-            print(len(self.cur_line.coords))
+            print(len(self.cur_line()))
             #            if len(self.cur_line.coords) > 0:
             canv.create_line(self.x0, self.y0, self.x, self.y, width=line_width, tag='recent')
             self.x0 = self.x
@@ -153,37 +168,37 @@ class App(object):
             check_button['bg'] = "red"
         check_button['text'] = p.is_in_polygon(self.lines[0])
 
-    def create_elips_bounds(self):
-        field_line = Polygon([])
-        a = field_height // 2
-        b = field_width // 2
-        for i in range(4 * b):
-            if i < b:
-                y = int(sqrt((a ** 2) * abs((1 - (i / b) ** 2))))
-                field_line.app(Point(10 + b + i, 10 + y + a))
-            elif i < 2 * b:
-                y = -int(sqrt((a ** 2) * abs((1 - ((i - 2 * b) / b) ** 2))))
-                field_line.app(Point(10 + 3 * b - i, 10 + y + a))
-            elif i < 3 * b:
-                y = -int(sqrt((a ** 2) * abs((1 - ((i - 2 * b) / b) ** 2))))
-                field_line.app(Point(10 + 3 * b - i, 10 + y + a))
-            else:
-                y = int(sqrt((a ** 2) * abs((1 - ((i - 4 * b) / b) ** 2))))
-                field_line.app(Point(10 - 3 * b + i, 10 + y + a))
-        return field_line
 
-    def create_rect_bounds(self):  # создание границ поля
-        field_line = Polygon([])
-        for i in range(field_width):
-            field_line.app(Point(10 + i, 10))
-        for i in range(field_height):
-            field_line.app(Point(10 + field_width, 10 + i))
-        for i in range(field_width):
-            field_line.app(Point(10 + field_width - i, 10 + field_height))
-        for i in range(field_height):
-            field_line.app(Point(10, 10 + field_height - i))
-        return field_line
-
+    def create_bounds(self):
+        if self.num_bound == 0:
+            field_line = Polygon([])
+            a = self.field_height // 2
+            b = self.field_width // 2
+            for i in range(4 * b):
+                if i < b:
+                    y = int(sqrt((a ** 2) * abs((1 - (i / b) ** 2))))
+                    field_line.app(Point(10 + b + i, 10 + y + a))
+                elif i < 2 * b:
+                    y = -int(sqrt((a ** 2) * abs((1 - ((i - 2 * b) / b) ** 2))))
+                    field_line.app(Point(10 + 3 * b - i, 10 + y + a))
+                elif i < 3 * b:
+                    y = -int(sqrt((a ** 2) * abs((1 - ((i - 2 * b) / b) ** 2))))
+                    field_line.app(Point(10 + 3 * b - i, 10 + y + a))
+                else:
+                    y = int(sqrt((a ** 2) * abs((1 - ((i - 4 * b) / b) ** 2))))
+                    field_line.app(Point(10 - 3 * b + i, 10 + y + a))
+            return field_line
+        if self.num_bound == 1:
+            field_line = Polygon([])
+            for i in range(self.field_width):
+                field_line.app(Point(10 + i, 10))
+            for i in range(self.field_height):
+                field_line.app(Point(10 + self.field_width, 10 + i))
+            for i in range(self.field_width):
+                field_line.app(Point(10 + self.field_width - i, 10 + self.field_height))
+            for i in range(self.field_height):
+                field_line.app(Point(10, 10 + self.field_height - i))
+            return field_line
     def draw_circle(self):  # рисование замкнутого на себя полигона
         self.k += 1
         if self.k == 4:
@@ -195,19 +210,19 @@ class App(object):
     def draw_polygon(
             self):  # рисование полигона, если стартовая точка пересечения с другим полигоном в его массиве находится раньше финальной
         new_polyg1 = Polygon([])
-        for i in self.lines[self.st_inter[0]].coords[self.fin_inter[1]:self.st_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]]()[self.fin_inter[1]:self.st_inter[1] + 1]:
             new_polyg1.app(i)
 
-        for i in range(len(self.cur_line.coords)):
-            new_polyg1.app(self.cur_line.coords[i])
+        for i in range(len(self.cur_line())):
+            new_polyg1.app(self.cur_line()[i])
         new_polyg2 = Polygon([])
 
-        for i in self.lines[self.st_inter[0]].coords[self.st_inter[1]: len(self.lines[self.st_inter[0]].coords)]:
+        for i in self.lines[self.st_inter[0]]()[self.st_inter[1]: len(self.lines[self.st_inter[0]]())]:
             new_polyg2.app(i)
-        for i in self.lines[self.st_inter[0]].coords[0:self.fin_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]]()[0:self.fin_inter[1] + 1]:
             new_polyg2.app(i)
-        for i in range(len(self.cur_line.coords)):
-            new_polyg2.app(self.cur_line.coords[len(self.cur_line.coords) - i - 1])
+        for i in range(len(self.cur_line())):
+            new_polyg2.app(self.cur_line()[len(self.cur_line()) - i - 1])
         self.lines.append(new_polyg1)
         self.lines.append(new_polyg2)
         self.lines.pop(self.st_inter[0])
@@ -215,17 +230,17 @@ class App(object):
     def draw_reverse_polygon(
             self):  # рисование полигона, если финальная точка пересечения с другим полигоном в его массиве находится раньше стартовой
         new_polyg1 = Polygon([])
-        for i in self.lines[self.st_inter[0]].coords[self.st_inter[1]:self.fin_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]]()[self.st_inter[1]:self.fin_inter[1] + 1]:
             new_polyg1.app(i)
-        for i in range(len(self.cur_line.coords)):
-            new_polyg1.app(self.cur_line.coords[len(self.cur_line.coords) - i - 1])
+        for i in range(len(self.cur_line())):
+            new_polyg1.app(self.cur_line()[len(self.cur_line()) - i - 1])
         new_polyg2 = Polygon([])
-        for i in self.lines[self.st_inter[0]].coords[self.fin_inter[1]: len(self.lines[self.st_inter[0]].coords)]:
+        for i in self.lines[self.st_inter[0]]()[self.fin_inter[1]: len(self.lines[self.st_inter[0]]())]:
             new_polyg2.app(i)
-        for i in self.lines[self.st_inter[0]].coords[0:self.st_inter[1] + 1]:
+        for i in self.lines[self.st_inter[0]]()[0:self.st_inter[1] + 1]:
             new_polyg2.app(i)
-        for i in range(len(self.cur_line.coords)):
-            new_polyg2.app(self.cur_line.coords[i])
+        for i in range(len(self.cur_line())):
+            new_polyg2.app(self.cur_line()[i])
         self.lines.pop(self.st_inter[0])
         self.lines.append(new_polyg1)
         self.lines.append(new_polyg2)
@@ -264,7 +279,7 @@ class App(object):
             self.graph.append([])
             for j in range(len(self.sliced_lines)):
                 # print(self.sliced_lines[j].coords)
-                if self.sliced_lines[j].coords[len(self.sliced_lines[j].coords) // 2] in self.lines[i].coords:
+                if self.sliced_lines[j]()[len(self.sliced_lines[j]()) // 2] in self.lines[i].coords:
                     self.graph[i].append(j)
         self.BFS_graph = [[] for i in range(len(self.graph))]
         for i in range(len(self.graph)):
@@ -285,19 +300,19 @@ class App(object):
         self.k = 0
         if len(self.cur_line.coords) > 0:
             self.cur_line.coords.pop(0)
-            if (abs(self.cur_line.coords[0].x - self.cur_line.coords[-1].x) <= 30 and abs(
-                    self.cur_line.coords[0].y - self.cur_line.coords[-1].y) <= 30):
+            if (abs(self.cur_line()[0].x - self.cur_line()[-1].x) <= 5 and abs(
+                    self.cur_line()[0].y - self.cur_line()[-1].y) <= 5):
                 self.draw_circle()
             else:
                 self.st_inter = [-1, -1]
                 self.fin_inter = [-1, -1]
                 for i in range(len(self.lines)):
                     for j in range(len(self.lines[i].coords)):
-                        if (abs(self.cur_line.coords[0].x - self.lines[i].coords[j].x) <= 30 and abs(
-                                self.cur_line.coords[0].y - self.lines[i].coords[j].y) <= 30):
+                        if (abs(self.cur_line()[0].x - self.lines[i]()[j].x) <= 5 and abs(
+                                self.cur_line()[0].y - self.lines[i]()[j].y) <= 5):
                             self.st_inter = [i, j]
-                        if (abs(self.cur_line.coords[-1].x - self.lines[i].coords[j].x) <= 30 and abs(
-                                self.cur_line.coords[-1].y - self.lines[i].coords[j].y) <= 30):
+                        if (abs(self.cur_line()[-1].x - self.lines[i]()[j].x) <= 5 and abs(
+                                self.cur_line()[-1].y - self.lines[i]()[j].y) <= 5):
                             self.fin_inter = [i, j]
                         if self.st_inter[0] != -1 and self.st_inter[0] == self.fin_inter[0]:
                             break
@@ -307,32 +322,32 @@ class App(object):
                     sliced_coord_st = [-1, -1]
                     sliced_coord_fin = [-1, -1]
                     for i in range(len(self.sliced_lines)):
-                        for j in range(len(self.sliced_lines[i].coords)):
-                            if (abs(self.cur_line.coords[0].x - self.sliced_lines[i].coords[j].x) <= 10 and abs(
-                                    self.cur_line.coords[0].y - self.sliced_lines[i].coords[j].y) <= 10):
+                        for j in range(len(self.sliced_lines[i]())):
+                            if (abs(self.cur_line()[0].x - self.sliced_lines[i]()[j].x) <= 5 and abs(
+                                    self.cur_line()[0].y - self.sliced_lines[i]()[j].y) <= 5):
                                 sliced_coord_st = [i, j]
-                            if (abs(self.cur_line.coords[-1].x - self.sliced_lines[i].coords[j].x) <= 10 and abs(
-                                    self.cur_line.coords[-1].y - self.sliced_lines[i].coords[j].y) <= 10):
+                            if (abs(self.cur_line()[-1].x - self.sliced_lines[i]()[j].x) <= 5 and abs(
+                                    self.cur_line()[-1].y - self.sliced_lines[i]()[j].y) <= 5):
                                 sliced_coord_fin = [i, j]
                     if sliced_coord_st[0] == sliced_coord_fin[0]:
-                        self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_st[0]].coords[
+                        self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_st[0]]()[
                                                          :min(sliced_coord_st[1], sliced_coord_fin[1])]))
                         self.sliced_lines.append(
-                            Polygon(self.sliced_lines[sliced_coord_st[0]].coords[
+                            Polygon(self.sliced_lines[sliced_coord_st[0]]()[
                                     min(sliced_coord_st[1], sliced_coord_fin[1]):max(sliced_coord_st[1],
                                                                                      sliced_coord_fin[1])]))
-                        self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_fin[0]].coords[
+                        self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_fin[0]]()[
                                                          max(sliced_coord_st[1], sliced_coord_fin[1]):]))
                         self.sliced_lines.pop(sliced_coord_st[0])
                     else:
                         self.sliced_lines.append(
-                            Polygon(self.sliced_lines[sliced_coord_st[0]].coords[:sliced_coord_st[1]]))
+                            Polygon(self.sliced_lines[sliced_coord_st[0]]()[:sliced_coord_st[1]]))
                         self.sliced_lines.append(
-                            Polygon(self.sliced_lines[sliced_coord_st[0]].coords[sliced_coord_st[1]:]))
+                            Polygon(self.sliced_lines[sliced_coord_st[0]]()[sliced_coord_st[1]:]))
                         self.sliced_lines.append(
-                            Polygon(self.sliced_lines[sliced_coord_fin[0]].coords[:sliced_coord_fin[1]]))
+                            Polygon(self.sliced_lines[sliced_coord_fin[0]]()[:sliced_coord_fin[1]]))
                         self.sliced_lines.append(
-                            Polygon(self.sliced_lines[sliced_coord_fin[0]].coords[sliced_coord_fin[1]:]))
+                            Polygon(self.sliced_lines[sliced_coord_fin[0]]()[sliced_coord_fin[1]:]))
                         if sliced_coord_st[0] > sliced_coord_fin[0]:
                             self.sliced_lines.pop(sliced_coord_st[0])
                             self.sliced_lines.pop(sliced_coord_fin[0])
@@ -345,32 +360,40 @@ class App(object):
                         self.draw_polygon()
                     else:
                         self.draw_reverse_polygon()
-                self.translate()
+                    self.translate()
 
-        print(self.cur_line.coords[0])
+        print(self.cur_line.coords[0]())
 
     def restart(self):
+        self.field_width = int(self.name.get())
+        self.field_heigth = int(self.surname.get())
         self.lines = []
         self.sliced_lines = []
         canv.delete("all")
-        self.lines.append(self.create_elips_bounds())
-        self.sliced_lines.append(self.create_elips_bounds())
+        self.lines.append(self.create_bounds())
+        self.sliced_lines.append(self.create_bounds())
         self.lines[0].fill("white")
+
+    def change_bounds(self):
+        self.num_bound = 1 - self.num_bound
+        self.restart()
+        if self.num_bound == 1:
+            check_button['text'] =u'\u25EF'
+            check_font = font.Font(size=25)
+            check_button['font'] = check_font
+        if self.num_bound == 0:
+            check_button['text'] =u'\u25FB'
+            check_font = font.Font(size=30)
+            check_button['font'] = check_font
 
 
 if __name__ == "__main__":  # bwrXBuLqUc9bDLH
     app = App()
-    #name_label = Label(text="Введите имя:")
-    #surname_label = Label(text="Введите фамилию:")
 
-    #name_label.grid(row=0, column=0, sticky="w")
-    #surname_label.grid(row=1, column=0, sticky="w")
-    a = Point(10,17)
-    print(a)
-    restart_button = Button(bg="red", text="restart", command=app.restart)
+    restart_font = font.Font(size=30)
+    restart_button = Button(bg="red", text=u'\u2B6E', command=app.restart)
+    restart_button['font'] = restart_font
     restart_button.place(x=field_width + 20 + ident_x, y=ident_y, width=50, height=50)
-    escape_button = Button(bg="grey", text="cancel")
-    escape_button.place(x=field_width + 20 + ident_x, y=field_height + ident_y - 35, width=50, height=50)
     button_color1 = Button(bg=colors[0], command=app.choose_colour1)
     button_color1.place(x=20, y=20, width=50, height=50)
     button_color2 = Button(bg=colors[1], command=app.choose_colour2)
@@ -379,7 +402,8 @@ if __name__ == "__main__":  # bwrXBuLqUc9bDLH
     button_color3.place(x=20, y=130, width=50, height=50)
     button_color4 = Button(bg=colors[3], command=app.choose_colour4)
     button_color4.place(x=20, y=185, width=50, height=50)
-    check_button = Button(bg="grey")
+    check_font = font.Font(size=30)
+    check_button = Button(bg="grey", text = u'\u25FB', command = app.change_bounds)
+    check_button['font'] = check_font
     check_button.place(x=20, y=600, width=50, height=50)
-    canv.bind('<Button-3>', app.check_point)
     root.mainloop()
