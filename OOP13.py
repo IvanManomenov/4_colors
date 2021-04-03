@@ -258,7 +258,7 @@ class App(object):
         self.lines.append(new_polyg1)
         self.lines.append(new_polyg2)
 
-    def is_array_inter(self, array1, array2):
+    def is_array_inter(self, array1, array2):#
         for i in array1:
             if i in array2:
                 return True
