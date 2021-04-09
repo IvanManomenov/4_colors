@@ -129,13 +129,17 @@ class App(object):
         cur_line_inter = Polygon([])
         for i in range(len(cur_line_sliced) - 1):
             cur_line_inter.app(cur_line_sliced[i])
-            if cur_line_sliced[i].y == cur_line_sliced[i+1].y:
-                for i in range(abs(cur_line_sliced[i].x - cur_line_sliced[i+1].x)):
-                    cur_line_inter.app(Point(min(cur_line_sliced[i].x,cur_line_sliced[i+1].x) + 1, cur_line_sliced[i].y))
+            if cur_line_sliced[i].y == cur_line_sliced[i + 1].y:
+                for i in range(abs(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)):
+                    cur_line_inter.app(
+                        Point(min(cur_line_sliced[i].x, cur_line_sliced[i + 1].x) + 1, cur_line_sliced[i].y))
             else:
-                tg = abs((cur_line_sliced[i].x - cur_line_sliced[i+1].x)/(cur_line_sliced[i].y - cur_line_sliced[i+1].y))
-                for i in range(abs(cur_line_sliced[i].y - cur_line_sliced[i+1].y)):
-                    cur_line_inter.app(Point(int(i*tg*self.sign(cur_line_sliced[i].x - cur_line_sliced[i+1].x)), i*self.sign(cur_line_sliced[i].y - cur_line_sliced[i+1].y)))
+                tg = abs((cur_line_sliced[i].x - cur_line_sliced[i + 1].x) / (
+                            cur_line_sliced[i].y - cur_line_sliced[i + 1].y))
+                print(tg)
+                for i in range(abs(cur_line_sliced[i].y - cur_line_sliced[i + 1].y)):
+                    cur_line_inter.app(Point(int(i * tg * self.sign(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)),
+                                             i * self.sign(cur_line_sliced[i].y - cur_line_sliced[i + 1].y)))
         return cur_line_inter
 
     def draw(self, event):  # рисование кривой
@@ -305,8 +309,11 @@ class App(object):
     def stop(self, event):  # окончание рисования линии, замыкание полигонов
 
         if len(self.cur_line()) > 0:
-            self.cur_line.coords = self.interpolation(self.cur_line.coords)
-            #self.cur_line.coords.pop(0)
+            self.cur_line.coords.pop(0)
+            print(self.cur_line.simpcoords)
+            self.cur_line.coords = self.interpolation(self.cur_line.coords).coords.copy()
+            print(self.cur_line.simpcoords)
+            #self.cur_line.fill('orange', 15)
             self.st_inter = [-1, -1]
             self.fin_inter = [-1, -1]
             for i in range(len(self.lines)):
