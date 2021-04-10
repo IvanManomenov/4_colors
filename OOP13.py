@@ -1,5 +1,4 @@
 from tkinter import *
-# from tkinter import colorchooser
 from tkinter.colorchooser import askcolor
 from math import *
 import tkinter.font as font
@@ -129,17 +128,20 @@ class App(object):
         cur_line_inter = Polygon([])
         for i in range(len(cur_line_sliced) - 1):
             cur_line_inter.app(cur_line_sliced[i])
+            #print(cur_line_sliced[i](), cur_line_sliced[i+1]())
             if cur_line_sliced[i].y == cur_line_sliced[i + 1].y:
-                for i in range(abs(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)):
+                for j in range(abs(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)):
                     cur_line_inter.app(
-                        Point(min(cur_line_sliced[i].x, cur_line_sliced[i + 1].x) + 1, cur_line_sliced[i].y))
+                        Point(min(cur_line_sliced[i].x, cur_line_sliced[i + 1].x) + j, cur_line_sliced[i].y))
+                    #print(cur_line_inter.simpcoords[-1])
             else:
                 tg = abs((cur_line_sliced[i].x - cur_line_sliced[i + 1].x) / (
                             cur_line_sliced[i].y - cur_line_sliced[i + 1].y))
-                print(tg)
-                for i in range(abs(cur_line_sliced[i].y - cur_line_sliced[i + 1].y)):
-                    cur_line_inter.app(Point(int(i * tg * self.sign(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)),
-                                             i * self.sign(cur_line_sliced[i].y - cur_line_sliced[i + 1].y)))
+                #print(tg)
+                for j in range(1, abs(cur_line_sliced[i].y - cur_line_sliced[i + 1].y)):
+                    cur_line_inter.app(Point(int(cur_line_sliced[i].x - j * tg * self.sign(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)),
+                                             cur_line_sliced[i].y - j * self.sign(cur_line_sliced[i].y - cur_line_sliced[i + 1].y)))
+                    #print(cur_line_inter.simpcoords[-1])
         return cur_line_inter
 
     def draw(self, event):  # рисование кривой
@@ -310,22 +312,22 @@ class App(object):
 
         if len(self.cur_line()) > 0:
             self.cur_line.coords.pop(0)
-            print(self.cur_line.simpcoords)
-            self.cur_line.coords = self.interpolation(self.cur_line.coords).coords.copy()
-            print(self.cur_line.simpcoords)
+            #print(self.cur_line.simpcoords)
+            self.cur_line = Polygon(self.interpolation(self.cur_line()).coords)
+            #print(self.cur_line.simpcoords)
             #self.cur_line.fill('orange', 15)
             self.st_inter = [-1, -1]
             self.fin_inter = [-1, -1]
             for i in range(len(self.lines)):
                 for j in range(len(self.lines[i].coords)):
-                    if (abs(self.cur_line()[0].x - self.lines[i]()[j].x) <= 5 and abs(
-                            self.cur_line()[0].y - self.lines[i]()[j].y) <= 5):
+                    if (abs(self.cur_line()[0].x - self.lines[i]()[j].x) <= 10 and abs(
+                            self.cur_line()[0].y - self.lines[i]()[j].y) <= 10):
                         self.st_inter = [i, j]
-                    if (abs(self.cur_line()[-1].x - self.lines[i]()[j].x) <= 5 and abs(
-                            self.cur_line()[-1].y - self.lines[i]()[j].y) <= 5):
+                    if (abs(self.cur_line()[-1].x - self.lines[i]()[j].x) <= 10 and abs(
+                            self.cur_line()[-1].y - self.lines[i]()[j].y) <= 10):
                         self.fin_inter = [i, j]
-                    if self.st_inter[0] != -1 and self.st_inter[0] == self.fin_inter[0]:
-                        break
+                if self.st_inter[0] != -1 and self.st_inter[0] == self.fin_inter[0]:
+                    break
             if self.st_inter[0] == -1 or self.fin_inter[0] == -1 or self.st_inter[0] != self.fin_inter[0]:
                 canv.delete('recent')
             else:
@@ -333,11 +335,11 @@ class App(object):
                 sliced_coord_fin = [-1, -1]
                 for i in range(len(self.sliced_lines)):
                     for j in range(len(self.sliced_lines[i]())):
-                        if (abs(self.cur_line()[0].x - self.sliced_lines[i]()[j].x) <= 5 and abs(
-                                self.cur_line()[0].y - self.sliced_lines[i]()[j].y) <= 5):
+                        if (abs(self.cur_line()[0].x - self.sliced_lines[i]()[j].x) <= 10 and abs(
+                                self.cur_line()[0].y - self.sliced_lines[i]()[j].y) <= 10):
                             sliced_coord_st = [i, j]
-                        if (abs(self.cur_line()[-1].x - self.sliced_lines[i]()[j].x) <= 5 and abs(
-                                self.cur_line()[-1].y - self.sliced_lines[i]()[j].y) <= 5):
+                        if (abs(self.cur_line()[-1].x - self.sliced_lines[i]()[j].x) <= 10 and abs(
+                                self.cur_line()[-1].y - self.sliced_lines[i]()[j].y) <= 10):
                             sliced_coord_fin = [i, j]
                 if sliced_coord_st[0] == sliced_coord_fin[0]:
                     self.sliced_lines.append(Polygon(self.sliced_lines[sliced_coord_st[0]]()[
