@@ -15,8 +15,6 @@ graph_canv = Canvas(root, bg='white')
 
 k = 0
 line_width = 5  # толщина рисуемой линии
-radius_inter = 10
-lines_in_polygon = []
 
 
 # count_lines = 0
@@ -172,6 +170,8 @@ class App(object):
                 for j in range(abs(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)):
                     cur_line_inter.app(
                         Point(min(cur_line_sliced[i].x, cur_line_sliced[i + 1].x) + j, cur_line_sliced[i].y))
+                    if cur_line_inter.coords[len(cur_line_inter())-2] == cur_line_inter.coords[len(cur_line_inter())-1]:
+                        cur_line_inter().pop(len(cur_line_inter())-1)
                     # print(cur_line_inter.simpcoords[-1])
             else:
                 tg = abs((cur_line_sliced[i].x - cur_line_sliced[i + 1].x) / (
@@ -181,6 +181,8 @@ class App(object):
                     cur_line_inter.app(Point(
                         int(cur_line_sliced[i].x - j * tg * self.sign(cur_line_sliced[i].x - cur_line_sliced[i + 1].x)),
                         cur_line_sliced[i].y - j * self.sign(cur_line_sliced[i].y - cur_line_sliced[i + 1].y)))
+                    if cur_line_inter.coords[len(cur_line_inter())-2] == cur_line_inter.coords[len(cur_line_inter())-1]:
+                        cur_line_inter().pop(len(cur_line_inter())-1)
                     # print(cur_line_inter.simpcoords[-1])
         return cur_line_inter
 
@@ -203,32 +205,40 @@ class App(object):
         """
         Функция для изменения цвета закрашиваемых полигонов
         """
-        colors[0] = askcolor()[1]
-        button_color1['bg'] = colors[0]
+        cc = askcolor()[1]
+        if cc != None and not (cc in colors):
+            colors[0] = cc
+            button_color1['bg'] = colors[0]
         self.translate()
 
     def choose_colour2(self):
         """
         Функция для изменения цвета закрашиваемых полигонов
         """
-        colors[1] = askcolor()[1]
-        button_color2['bg'] = colors[1]
+        cc = askcolor()[1]
+        if cc != None and not (cc in colors):
+            colors[1] = cc
+            button_color2['bg'] = colors[1]
         self.translate()
 
     def choose_colour3(self):
         """
         Функция для изменения цвета закрашиваемых полигонов
         """
-        colors[2] = askcolor()[1]
-        button_color3['bg'] = colors[2]
+        cc = askcolor()[1]
+        if cc != None and not (cc in colors):
+            colors[2] = cc
+            button_color3['bg'] = colors[2]
         self.translate()
 
     def choose_colour4(self):
         """
         Функция для изменения цвета закрашиваемых полигонов
         """
-        colors[3] = askcolor()[1]
-        button_color4['bg'] = colors[3]
+        cc = askcolor()[1]
+        if cc != None and not (cc in colors):
+            colors[3] = cc
+            button_color4['bg'] = colors[3]
         self.translate()
 
     def check_point(self, event):
@@ -357,17 +367,17 @@ class App(object):
                 self.count_recursion = 0
         if 4 in self.colored_graph:
             self.count_recursion += 1
-            self.sliced_lines.append(self.sliced_lines[self.count_recursion // len(self.sliced_lines)])
-            self.sliced_lines.pop(self.count_recursion // len(self.sliced_lines))
-            #self.lines = self.lines[::-1].copy()
+            self.lines.append(self.sliced_lines[self.count_recursion // len(self.sliced_lines)])
+            self.lines.pop(self.count_recursion // len(self.sliced_lines))
+            self.lines = self.lines[::-1].copy()
             self.translate()
 
     def draw_graph(self):
         graph_coords = []
         graph_canv.delete("all")
-        for i in range(1, len(self.graph) + 1):
-            x = 190 + 180 * cos(pi / len(self.graph) * (2 * i + 1))
-            y = 190 + 180 * sin(pi / len(self.graph) * (2 * i + 1))
+        for i in range(1, len(self.lines_in_polygon) + 1):
+            x = 190 + 180 * cos(pi / len(self.lines_in_polygon) * (2 * i + 1))
+            y = 190 + 180 * sin(pi / len(self.lines_in_polygon) * (2 * i + 1))
             graph_coords.append([x,y])
 
         for i in range(len(self.BFS_graph)):
@@ -378,27 +388,27 @@ class App(object):
 
     def translate(self):
         """
-        Функция, переводящее изображение(планарный граф) в обычный граф
+        Функция, переводящее изображение(плоский граф) в обычный граф
         """
-        self.graph = []
+        self.lines_in_polygon = []
         self.lines = self.lines[::-1].copy()
         for i in range(len(self.lines)):
-            self.graph.append([])
+            self.lines_in_polygon.append([])
             for j in range(len(self.sliced_lines)):
                 if len(self.sliced_lines[j]()) == 0:
                     pass
                 elif self.sliced_lines[j]()[len(self.sliced_lines[j]()) // 2] in self.lines[i].coords:
-                    self.graph[i].append(j)
-        self.BFS_graph = [[] for i in range(len(self.graph))]
-        for i in range(len(self.graph)):
-            for j in range(len(self.graph)):
+                    self.lines_in_polygon[i].append(j)
+        self.BFS_graph = [[] for i in range(len(self.lines_in_polygon))]
+        for i in range(len(self.lines_in_polygon)):
+            for j in range(len(self.lines_in_polygon)):
                 if i == j:
                     break
-                if self.is_array_inter(self.graph[i], self.graph[j]):
+                if self.is_array_inter(self.lines_in_polygon[i], self.lines_in_polygon[j]):
                     self.BFS_graph[i].append(j)
                     self.BFS_graph[j].append(i)
         self.paint()
-        print(self.graph)
+        print(self.lines_in_polygon)
         self.draw_graph()
 
     def stop(self, event):  # окончание рисования линии, замыкание полигонов
